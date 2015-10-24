@@ -15,13 +15,15 @@ Firt, I load and clean the data.
 # Load libraies
 library(caret)
 library(klaR)
+getwd()
 
 # Read and clean the data
 if (!file.exists("pml-training.csv")) {
 download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv",
               destfile="pml-training.csv", method="curl")
 }
-trainData <- read.csv("pml-training.csv", header = TRUE, sep = ",", dec = ".", fill = TRUE, na.strings=c("NA","#DIV/0!",""))
+trainData <- read.csv("pml-training.csv", header = TRUE, sep = ",", dec = ".", fill = TRUE,
+                      na.strings=c("NA","#DIV/0!",""))
 
 # delete the columns most the data is empty, and irrelevant data for the experiment
 trainData   <-trainData[,-c(1:7)]
@@ -67,16 +69,14 @@ The result with Random Forest is pretty better. In this case, I get 99% of accur
 #modelRF <- train(classe~.,data=training,method="rf", trControl=trainControl(method="cv",number=5),
 #                 prox=TRUE,allowParallel=TRUE)
 #saveRDS(modelRF, "mySavedModelRF.rds")
-modelRF <- readRDS("mySavedModelRF.rds")
+#modelRF <- readRDS("mySavedModelRF.rds")
 
-modelRF$finalModel
-modelRF
+#modelRF$finalModel
+#modelRF
 
-#predictedData <- predict(modelFit, subsetTesting)
+#predictRF <- predict(modelRF, testing)
 
-predictRF <- predict(modelRF, testing)
-
-confusionMatrix(testing$classe, predictRF)
+#confusionMatrix(testing$classe, predictRF)
 
 
 #myModelReloaded <- readRDS("mySavedModel001.rds")
