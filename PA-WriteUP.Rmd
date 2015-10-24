@@ -1,6 +1,6 @@
 ---
 title: "Practical Machine Learning - Barbell Lifts"
-author: "Óscar Martínez"
+author: "Ã“scar MartÃ­nez"
 date: "October 2015"
 output: html_document
 ---
@@ -90,5 +90,4 @@ what you think the expected out of sample error is
 NOTA: mirar https://class.coursera.org/predmachlearn-033/forum/thread?thread_id=91#post-377
 
 # Why I Made the Choices I Do.
-
 
