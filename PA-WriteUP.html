@@ -73,10 +73,11 @@ img {
 </div>
 <div id="building-the-model" class="section level1">
 <h1>Building the Model</h1>
-<p>As the goal is to predict the manner in which the subject do the activity, I’ll try to classify the data of the test in the 5 differents classes explained in the paper. I test with several methods trying to get a good algorithm. First of it all I load and clean the data provided, excluding from the analisys the irrelevant variables. Then, I slice the training data in train and test, in order to evaluate the models, getting the 70% of the train data for training, and the 30% for testing the models.</p>
+<p>As the goal is to predict the manner in which the subject do the activity, I’ll try to classify the data of the test in the 5 differents classes explained in the paper. I test with several methods trying to get a good algorithm. First of it all I load and clean the data provided, excluding from the analisys the irrelevant variables.</p>
 <pre class="r"><code># delete the columns most the data is empty, and irrelevant data for the experiment
 trainData   &lt;-trainData[,-c(1:7)]
 trainData &lt;- trainData[, colSums(is.na(trainData)) &lt; 0.8*nrow(trainData)]</code></pre>
+<p>Then, I slice the training data in train and test, in order to evaluate the models, getting the 70% of the train data for training, and the 30% for testing the models.</p>
 <p>I build two models:</p>
 <p>Using Rpart, getting a model with 73% of accuracy.</p>
 <pre class="r"><code>modelRPart &lt;- rpart(classe ~ ., data=training, method=&quot;class&quot;)</code></pre>
@@ -152,26 +153,14 @@ confusionMatrix(testing$classe, predictRF)</code></pre>
 ## Detection Rate         0.2843   0.1925   0.1723   0.1613   0.1839
 ## Detection Prevalence   0.2845   0.1935   0.1743   0.1638   0.1839
 ## Balanced Accuracy      0.9981   0.9937   0.9920   0.9985   0.9995</code></pre>
+<p>We get better accuracy with random forest than Rpart (99% vs 73%), so I choose this the random forest model to predict the <em>classe</em> in the test data.</p>
+<p>I predict that, if the accuracy is over 99% (0.9942), the error will be about under 1% (1 - 0.9942 = 0.0058).</p>
 </div>
 <div id="submission" class="section level1">
 <h1>Submission</h1>
-<pre class="r"><code>if (!file.exists(&quot;pml-testing.csv&quot;)) {
-download.file(url=&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;,
-              destfile=&quot;pml-testing.csv&quot;, method=&quot;curl&quot;)
-}
-testData &lt;- read.csv(&quot;pml-testing.csv&quot;, header = TRUE, sep = &quot;,&quot;, dec = &quot;.&quot;, fill = TRUE, na.strings=c(&quot;NA&quot;,&quot;#DIV/0!&quot;,&quot;&quot;))
-
-
-pml_write_files = function(x){
-  n = length(x)
-  for(i in 1:n){
-    filename = paste0(&quot;problem_id_&quot;,i,&quot;.txt&quot;)
-    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
-  }
-}
-
-answers &lt;- predict(modelRF, newdata=testData)
-pml_write_files(answers)</code></pre>
+<pre><code>##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+##  B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
+## Levels: A B C D E</code></pre>
 </div>
 
 

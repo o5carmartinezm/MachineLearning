@@ -88,6 +88,9 @@ predictRF <- predict(modelRF, testing)
 confusionMatrix(testing$classe, predictRF)
 ```
 
+We get better accuracy with random forest than Rpart (99% vs 73%), so I choose this the random forest model to predict the *classe* in the test data.
+
+I predict that, if the accuracy is over 99% (0.9942), the error will be about under 1% (1 - 0.9942 = 0.0058).
 
 
 # Submission
@@ -108,6 +111,7 @@ pml_write_files = function(x){
 }
 
 answers <- predict(modelRF, newdata=testData)
+answers
 pml_write_files(answers)
 
 ```
