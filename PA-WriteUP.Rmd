@@ -4,18 +4,19 @@ author: "Óscar Martínez"
 date: "October 2015"
 output: html_document
 ---
+```{r setEnvironment, echo=FALSE, warning=FALSE, message=FALSE}
+
+# Load libraies
+
+library(caret)
+library(klaR)
+library(rpart)
+library(randomForest)
+```
 # Sipnosis
 Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. I'll try to quantify how well they do the activity. I will use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available here: <http://groupware.les.inf.puc-rio.br/har> .
 
-# Building the Model
-As the goal is to predict the manner in which the subject do the activity, I'll try to classify the data in the 5 different classes. I test with several methods trying to get a good algorithm.
-Firt, I load and clean the data.
-
-```{r load_data, echo=TRUE, warning=FALSE, message=FALSE}
-# Load libraies
-library(caret)
-library(klaR)
-getwd()
+```{r load_data, echo=FALSE, warning=FALSE, message=FALSE}
 
 # Read and clean the data
 if (!file.exists("pml-training.csv")) {
@@ -24,70 +25,89 @@ download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-train
 }
 trainData <- read.csv("pml-training.csv", header = TRUE, sep = ",", dec = ".", fill = TRUE,
                       na.strings=c("NA","#DIV/0!",""))
+```
+
+# Building the Model
+As the goal is to predict the manner in which the subject do the activity, I'll try to classify the data of the test in the 5 differents classes explained in the paper. I test with several methods trying to get a good algorithm.
+First of it all I load and clean the data provided, excluding from the analisys the 
+irrelevant variables.
+
+```{r clean_data, echo=TRUE, warning=FALSE, message=FALSE}
 
 # delete the columns most the data is empty, and irrelevant data for the experiment
 trainData   <-trainData[,-c(1:7)]
 trainData <- trainData[, colSums(is.na(trainData)) < 0.8*nrow(trainData)]
 
-if (!file.exists("pml-testing.csv")) {
-download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv",
-              destfile="pml-testing.csv", method="curl")
-}
-testData <- read.csv("pml-testing.csv", header = TRUE, sep = ",", dec = ".", fill = TRUE, na.strings=c("NA","#DIV/0!",""))
-
 ```
 
-Then, I slice the training data in train and test, in order to evaluate the models.
-```{r slice_data, echo=TRUE, warning=FALSE, message=FALSE}
+Then, I slice the training data in train and test, in order to evaluate the models, getting the 70% of the train data for training, and the 30% for testing the models.
+
+
+```{r slice_data, echo=FALSE, warning=FALSE, message=FALSE}
 # Fix the seed for reproducible reseach
 set.seed(123)
 
 # Slice the data into training and testing
-#trainData$classe <- factor(trainData$classe)
 inTrain <- createDataPartition(y=trainData$classe, p=0.7, list=FALSE)
 training <- trainData[inTrain,]
 testing <- trainData[-inTrain,]
 
 ```
 
-Using Rpart, I get a model with 73% of accuracy.
+I build two models:
 
-```{r build_model_RPART, echo=TRUE, warning=FALSE, cache=TRUE, message=FALSE}
-library(rpart)
+Using Rpart, getting a model with 73% of accuracy.
+
+```{r build_model_RPART, echo=TRUE, warning=FALSE, message=FALSE}
+
 modelRPart <- rpart(classe ~ ., data=training, method="class")
-saveRDS(modelRPart, "mySavedModelRPart.rds")
+
+```
+
+```{r expected_errorRPart, echo=TRUE, warning=FALSE, message=FALSE}
 
 predictRPart <- predict(modelRPart, testing, type = "class")
 confusionMatrix(predictRPart, testing$classe)
 
 ```
 
-The result with Random Forest is pretty better. In this case, I get 99% of accuracy
+The result with Random Forest is pretty better. In this case, I get 99% of accuracy as we can see.
 
-```{r build_model_RF, echo=TRUE, warning=FALSE, cache=TRUE, message=FALSE}
+```{r build_model_RF, echo=TRUE, warning=FALSE, message=FALSE}
 
-#modelRF <- train(classe~.,data=training,method="rf", trControl=trainControl(method="cv",number=5),
-#                 prox=TRUE,allowParallel=TRUE)
-#saveRDS(modelRF, "mySavedModelRF.rds")
-#modelRF <- readRDS("mySavedModelRF.rds")
-
-#modelRF$finalModel
-#modelRF
-
-#predictRF <- predict(modelRF, testing)
-
-#confusionMatrix(testing$classe, predictRF)
-
-
-#myModelReloaded <- readRDS("mySavedModel001.rds")
+modelRF <- randomForest(classe ~. , data=training, method="class")
 
 ```
 
-# Cross Validation
-how you used cross validation
 # Expected Out of Sample Error
-what you think the expected out of sample error is
-NOTA: mirar https://class.coursera.org/predmachlearn-033/forum/thread?thread_id=91#post-377
 
-# Why I Made the Choices I Do.
+Validation of Random Rorest
 
+```{r expected_errorRF, echo=TRUE, warning=FALSE, message=FALSE}
+predictRF <- predict(modelRF, testing)
+confusionMatrix(testing$classe, predictRF)
+```
+
+
+
+# Submission
+```{r submission, echo=FALSE, warning=FALSE, message=FALSE}
+if (!file.exists("pml-testing.csv")) {
+download.file(url="https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv",
+              destfile="pml-testing.csv", method="curl")
+}
+testData <- read.csv("pml-testing.csv", header = TRUE, sep = ",", dec = ".", fill = TRUE, na.strings=c("NA","#DIV/0!",""))
+
+
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+answers <- predict(modelRF, newdata=testData)
+pml_write_files(answers)
+
+```
